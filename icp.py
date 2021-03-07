@@ -93,10 +93,11 @@ def move_qc(from_sheet, to_sheet):
                                 to_sheet.cell(row=sheet2_row, column = cell.col_idx)._style = copy(cell._style)
 
 num = 0
-for file in xml_files:
+for f in xml_files:
     num += 1
-    excel_file = f"{excel_name}_{num}.xlsx"
-    convert_xls_to_xlsx(file, excel_file)
+    name_stripped = f.strip(".xml")
+    excel_file = f"{name_stripped}.xlsx"
+    convert_xls_to_xlsx(f, excel_file)
     wb = xl.load_workbook(excel_file)
     ws1 = wb.active
     wb.create_sheet("Sorted")
@@ -187,13 +188,15 @@ for file in xml_files:
         is_empty = False
         if from_sheet["A1"].value == None:
             is_empty = True
-        for row in from_sheet.iter_rows(min_row = 1, min_col = 1, max_col = 14):
-            if is_empty == False:
+        if is_empty == False: # loop through rows only if sheet was not empty
+            indicator = from_sheet.title + ":"
+            to_sheet.cell(row = row_idx, column = 1).value = indicator
+            for row in from_sheet.iter_rows(min_row = 1, min_col = 1, max_col = 14):
                 row_idx += 1 
-            for cell in row:
-                to_sheet.cell(row = row_idx, column = cell.col_idx).value = cell.value            
-                if cell.has_style:
-                    to_sheet.cell(row = row_idx, column = cell.col_idx)._style = copy(cell._style) 
+                for cell in row:
+                    to_sheet.cell(row = row_idx, column = cell.col_idx).value = cell.value            
+                    if cell.has_style:
+                        to_sheet.cell(row = row_idx, column = cell.col_idx)._style = copy(cell._style) 
         if is_empty == False:            
             row_idx += 2
 
@@ -201,6 +204,11 @@ for file in xml_files:
     add_non_geos(ws4, ws7)
     add_non_geos(ws5, ws7)
     add_non_geos(ws6, ws7)
+    wb.remove(ws3)
+    wb.remove(ws4)
+    wb.remove(ws5)
+    wb.remove(ws6)
+
 
     wb.save(excel_file)
     wb.close()
