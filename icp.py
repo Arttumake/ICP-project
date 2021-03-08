@@ -54,13 +54,12 @@ def move_sorters(from_sheet, to_sheet):
 def move_qc(from_sheet, to_sheet):
     sheet1_row = 2
     sheet2_row = 0
-    lower_qc = [value.lower() for value in qc]
+    lower_qc = [value.lower() for value in qc] # convert list to lower case to compare with lower case cell values
+    indices = []
     for row in from_sheet.iter_rows(min_row = 3, min_col = value_col, max_col = value_col):
+        
         sheet1_row +=1
         for cell in row:
-            """Checks if cell value has "prep" or "pulp" and if it does, loops through the column again and checks for the non-duplicate value
-            and inserts that value before the prep/pulp value to the QC tab
-            """
             if any(value in cell.value.lower() for value in lower_qc):
                 not_geological.append(cell.value)
                 # if prep or pulp in cell, loops through the values again and moves the original value before the duplicate
@@ -74,18 +73,28 @@ def move_qc(from_sheet, to_sheet):
                         non_dup_final = "_" + non_dup_split[0]
                     print(non_dup_final)
                     this_row = 2    
+                    break_loop = False
                     for row in from_sheet.iter_rows(min_row = 3, min_col = value_col, max_col = value_col):
                         this_row += 1
                         for cell in row:
-                            if non_dup_final in cell.value.lower() and "prep" not in cell.value.lower() and "pulp" not in cell.value.lower():
-                                for row in from_sheet.iter_rows(min_row = this_row, max_row = this_row, min_col = 1):
-                                    sheet2_row += 1
-                                    for cell in row:
-                                        to_sheet.cell(row=sheet2_row, column = cell.col_idx).value = cell.value
-                                        if cell.has_style:
-                                                to_sheet.cell(row=sheet2_row, column = cell.col_idx)._style = copy(cell._style)                                     
+                            if non_dup_final in cell.value.lower() and "prep" not in cell.value.lower() and "pulp" not in cell.value.lower():                             
+                                if cell.row not in indices:
+                                    print(f"{cell.row} added to list")
+                                    for row in from_sheet.iter_rows(min_row = this_row, max_row = this_row, min_col = 1):
+                                        sheet2_row += 1
+                                        for cell in row:
+                                            to_sheet.cell(row=sheet2_row, column = cell.col_idx).value = cell.value
+                                            if cell.has_style:
+                                                    to_sheet.cell(row=sheet2_row, column = cell.col_idx)._style = copy(cell._style)
+                                    indices.append(cell.row) # add index value to list so that same value is not added again
+                                    break_loop = True
+                                break
+                            if break_loop:
+                                break
+                        if break_loop:
+                            break                                     
                 
-                for row2 in from_sheet.iter_rows(min_row = sheet1_row, max_row = sheet1_row, min_col = 1):
+                for row2 in from_sheet.iter_rows(min_row = sheet1_row, max_row = sheet1_row, min_col = 1): # adds the pulp/prep value afterwards
                     sheet2_row +=1
                     for cell in row2:
                         to_sheet.cell(row=sheet2_row, column = cell.col_idx).value = cell.value
@@ -204,11 +213,12 @@ for f in xml_files:
     add_non_geos(ws4, ws7)
     add_non_geos(ws5, ws7)
     add_non_geos(ws6, ws7)
+    """
     wb.remove(ws3)
     wb.remove(ws4)
     wb.remove(ws5)
     wb.remove(ws6)
-
+    """
 
     wb.save(excel_file)
     wb.close()
