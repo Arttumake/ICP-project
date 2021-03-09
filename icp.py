@@ -1,6 +1,7 @@
 import openpyxl as xl
 import os
 import glob
+import re
 from copy import copy
 from win32com.client import Dispatch
 
@@ -30,6 +31,8 @@ def move_items(from_sheet, to_sheet, list):
         sheet1_row +=1
         for cell in row:
             if any(value in cell.value for value in list) and "Pulp".lower() not in cell.value.lower() and "Prep".lower() not in cell.value.lower():
+                if list == courier_samples and "sr-ref" in cell.value.lower():  # fix for SR-ref samples being placed in courier sample list                 
+                    break
                 not_geological.append(cell.value)
                 for row2 in from_sheet.iter_rows(min_row = sheet1_row, max_row = sheet1_row, min_col = 1):
                     sheet2_row +=1
@@ -213,12 +216,11 @@ for f in xml_files:
     add_non_geos(ws4, ws7)
     add_non_geos(ws5, ws7)
     add_non_geos(ws6, ws7)
-    """
+    
     wb.remove(ws3)
     wb.remove(ws4)
     wb.remove(ws5)
     wb.remove(ws6)
-    """
 
     wb.save(excel_file)
     wb.close()
