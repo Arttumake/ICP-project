@@ -1,3 +1,4 @@
+import shutil
 import openpyxl as xl
 import os
 import glob
@@ -9,9 +10,11 @@ path = os.getcwd()
 xml_files = glob.glob(os.path.join(path, "*.xml"))
 excel_name = "Testing"
 exclusion_list = ("Blank", "Kalib.blank", "Std1", "Std2", "Std3", "QC", "qc", "Vesi", "vesi") # List of labels to filter out
+
 process_samples = ("AgPbR_", "ZnR_", "SR_", "M_", "J_", "ZnJ_", "AgPbJ_")
 courier_samples = (" AgPbR", " ZnR", " SR", " M", " J", " ZnJ", " AgPbJ")
 qc = ["Prep", "Pulp", "GBM", "Reag.blank", "GMR", "OREAS", "GSB", "Pyrref", "Pyr-ref", "SR-Ref"]
+
 not_geological = []
 value_col = 3 # column number of the column with the names
 
@@ -74,15 +77,14 @@ def move_qc(from_sheet, to_sheet):
                     else:                        
                         non_dup_split = non_dup[1].split(" prep")
                         non_dup_final = "_" + non_dup_split[0]
-                    print(non_dup_final)
+                        
                     this_row = 2    
                     break_loop = False
                     for row in from_sheet.iter_rows(min_row = 3, min_col = value_col, max_col = value_col):
                         this_row += 1
                         for cell in row:
                             if non_dup_final in cell.value.lower() and "prep" not in cell.value.lower() and "pulp" not in cell.value.lower():                             
-                                if cell.row not in indices:
-                                    print(f"{cell.row} added to list")
+                                if cell.row not in indices:                                    
                                     for row in from_sheet.iter_rows(min_row = this_row, max_row = this_row, min_col = 1):
                                         sheet2_row += 1
                                         for cell in row:
@@ -174,7 +176,6 @@ for f in xml_files:
     move_items(ws2,ws4, courier_samples)
     move_sorters(ws2, ws5)
     move_qc(ws2, ws6)
-    print("\n")
 
     for row in ws1.iter_rows(min_row = 1, max_row = 2, min_col = 1, max_col = 13):
         for cell in row:
@@ -224,3 +225,14 @@ for f in xml_files:
 
     wb.save(excel_file)
     wb.close()
+
+def move_file(xml_file):
+    dir_name = "xmls"
+    xmls_dir = os.path.join(path, dir_name)
+    xml = os.path.join(path, xml_file)
+    if not os.path.exists(xmls_dir):      
+        os.mkdir(xmls_dir)
+    shutil.move(xml, xmls_dir)
+
+for f in xml_files:        
+    move_file(f)

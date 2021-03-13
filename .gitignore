@@ -1,6 +1,7 @@
 *xml
 *csv
 *xlsx
+*bat
 icp-data/
 .vs
 .vscode
